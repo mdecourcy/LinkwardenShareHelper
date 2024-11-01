@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -29,31 +31,57 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          # Get commits since last release or last 10 commits if no release exists
+          CHANGELOG=$(git log -10 --pretty=format:"- %s (%h)" --reverse)
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "$CHANGELOG" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Get current date
+        id: date
+        run: echo "BUILD_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug
 
+      - name: Rename APK
+        run: |
+          mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/LinkwardenShare.apk
+
       - name: Upload Debug APK
         uses: actions/upload-artifact@v3
         with:
-          name: app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: LinkwardenShare
+          path: app/build/outputs/apk/debug/LinkwardenShare.apk
 
       - name: Create Release
         if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
         uses: softprops/action-gh-release@v1
         with:
-          files: app/build/outputs/apk/debug/app-debug.apk
-          tag_name: v0.0.${{ github.run_number }}
-          name: Pre-release build ${{ github.run_number }}
+          files: app/build/outputs/apk/debug/LinkwardenShare.apk
+          tag_name: latest
+          name: Latest Build
           draft: false
           prerelease: true
-          generate_release_notes: true
+          generate_release_notes: false
           body: |
-            Pre-release build from latest main branch.
-            **Warning**: This is an automated development build and may be unstable.
+            This is the latest automated build of Linkwarden Share Helper.
+
+            **App Information:**
+            - Version Code: ${{ github.run_number }}
+            - Build Date: ${{ env.BUILD_DATE }}
+            - Minimum Android Version: 6.0 (API 23)
+
+            **Recent Changes:**
+            ${{ env.CHANGELOG }}
+
+            **Note:** This is a development build and may contain bugs.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
