@@ -10,6 +10,11 @@ on:
       - master
       - main
 
+permissions:
+  contents: write
+  packages: write
+  pull-requests: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -41,11 +46,14 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: app/build/outputs/apk/debug/app-debug.apk
-          tag_name: v${{ github.run_number }}
-          name: Build ${{ github.run_number }}
+          tag_name: v0.0.${{ github.run_number }}
+          name: Pre-release build ${{ github.run_number }}
           draft: false
-          prerelease: false
+          prerelease: true
           generate_release_notes: true
+          body: |
+            Pre-release build from latest main branch.
+            **Warning**: This is an automated development build and may be unstable.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -56,4 +64,3 @@ jobs:
           path: |
             app/build/outputs/
             app/build/reports/
-
