@@ -55,18 +55,46 @@ The app is automatically built and released using GitHub Actions whenever a new 
 2. Open in Android Studio
 3. Build using Gradle
 
-## Requirements
+## Development
 
-- Android 6.0 (API level 23) or higher
-- Linkwarden instance with API access
+This project uses GitHub Actions for continuous integration and deployment. The workflow is defined in `.github/workflows/build.yml`.
+
+### Branch Structure
+- `master`: Stable production code
+- `dev`: Main development branch
+- `feat/*`: Feature branches
+- `hotfix/*`: Hotfix branches
+
+### Workflow
+1. Development is done on feature branches (`feat/*`) or hotfix branches (`hotfix/*`)
+2. Pull requests are created to merge changes into `dev`
+3. When ready for release, `dev` is merged into `master`
+4. Pushing to `master` triggers a new build and release
+
+### Versioning
+The app uses an automated versioning system:
+- Master branch: `1.YYYYMM.DDCCCCC`
+- Dev branch: `0.YYYYMM.DDCCCCC-dev`
+- Other branches: `0.YYYYMM.DDCCCCC-branchname`
+
+Where:
+- `YYYY`: Current year
+- `MM`: Current month
+- `DD`: Current day
+- `CCCCC`: Commit count
+
+### Automated Builds
+- Every push to `master`, `dev`, `feat/*`, and `hotfix/*` triggers a build
+- Debug APKs are generated for all builds
+- GitHub Releases are created only for pushes to `master`
 
 ## Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feat/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat/Add some amazing feature'`)
+3. Commit your changes (`git commit -m 'feat: Add some amazing feature'`)
 4. Push to the branch (`git push origin feat/amazing-feature`)
-5. Open a Pull Request
+5. Open a Pull Request against the `dev` branch
 
 ## Screenshots
 
