@@ -39,7 +39,7 @@
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
+        android:layout_marginBottom="16dp"
         android:hint="Access Token"
         app:hintTextColor="@color/gray_500"
         android:textColorHint="@color/gray_500"
@@ -52,6 +52,46 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPassword"
+            android:textColor="@color/white"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:hint="Tags (comma-separated)"
+        app:hintTextColor="@color/gray_500"
+        android:textColorHint="@color/gray_500"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/tags"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:textColor="@color/white"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:hint="Collection ID"
+        app:hintTextColor="@color/gray_500"
+        android:textColorHint="@color/gray_500"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/collectionId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
             android:textColor="@color/white"
             android:focusable="true"
             android:focusableInTouchMode="true" />

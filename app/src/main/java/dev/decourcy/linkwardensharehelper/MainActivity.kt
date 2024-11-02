@@ -1,6 +1,5 @@
 package dev.decourcy.linkwardensharehelper
 
-import android.content.Context
 import android.os.Bundle
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -27,6 +26,12 @@ class MainActivity : AppCompatActivity() {
         )
         findViewById<EditText>(R.id.accessToken).setText(
             encryptedSharedPrefs.getString("token", "")
+        )
+        findViewById<EditText>(R.id.tags).setText(
+            encryptedSharedPrefs.getString("tags", "")
+        )
+        findViewById<EditText>(R.id.collectionId).setText(
+            encryptedSharedPrefs.getString("collectionId", "")
         )
 
         findViewById<Button>(R.id.saveButton).setOnClickListener {
@@ -71,11 +76,15 @@ class MainActivity : AppCompatActivity() {
     private fun saveSettings() {
         val server = findViewById<EditText>(R.id.serverAddress).text.toString()
         val token = findViewById<EditText>(R.id.accessToken).text.toString()
+        val tags = findViewById<EditText>(R.id.tags).text.toString()
+        val collectionId = findViewById<EditText>(R.id.collectionId).text.toString()
 
         try {
             encryptedSharedPrefs.edit().apply {
                 putString("server", server)
                 putString("token", token)
+                putString("tags", tags)
+                putString("collectionId", collectionId)
                 apply()
             }
             Toast.makeText(this, "Settings saved securely", Toast.LENGTH_SHORT).show()
