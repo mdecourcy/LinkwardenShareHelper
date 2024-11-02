@@ -41,10 +41,8 @@ jobs:
           BRANCH=${GITHUB_REF#refs/heads/}
           if [[ "$BRANCH" == "master" ]]; then
             VERSION="1.$YEAR$MONTH.$DAY$COMMITS"
-          elif [[ "$BRANCH" == develop ]]; then
+          elif [[ "$BRANCH" == "dev" ]]; then
             VERSION="0.$YEAR$MONTH.$DAY$COMMITS-dev"
-          elif [[ "$BRANCH" == release/* ]]; then
-            VERSION="0.$YEAR$MONTH.$DAY$COMMITS-rc"
           else
             VERSION="0.$YEAR$MONTH.$DAY$COMMITS-$BRANCH"
           fi
@@ -63,7 +61,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master'))
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
       - name: Download APK
@@ -77,6 +75,6 @@ jobs:
           tag_name: v${{ env.VERSION }}
           name: Release ${{ env.VERSION }}
           draft: false
-          prerelease: ${{ github.ref != 'refs/heads/master' }}
+          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
