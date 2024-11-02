@@ -22,6 +22,8 @@ jobs:
   build:
     needs: test
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,7 +40,6 @@ jobs:
           MONTH=$(date +'%m')
           DAY=$(date +'%d')
           COMMITS=$(git rev-list --count HEAD)
-          BRANCH=${GITHUB_REF#refs/heads/}
           if [[ "$GITHUB_REF" == "refs/heads/master" ]]; then
             VERSION="1.$YEAR$MONTH.$DAY$COMMITS"
           elif [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
@@ -48,17 +49,17 @@ jobs:
             SAFE_BRANCH=$(echo "$GITHUB_REF" | sed 's/[^a-zA-Z0-9._-]/-/g')
             VERSION="0.$YEAR$MONTH.$DAY$COMMITS-$SAFE_BRANCH"
           fi
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
       - name: Build APK
         run: ./gradlew assembleDebug
       - name: Rename APK
         run: |
-          mv app/build/outputs/apk/debug/app-debug.apk "app/build/outputs/apk/debug/LinkwardenShare-${{ env.VERSION }}.apk"
+          mv app/build/outputs/apk/debug/app-debug.apk "app/build/outputs/apk/debug/LinkwardenShare-${{ steps.version.outputs.version }}.apk"
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: LinkwardenShare-${{ env.VERSION }}
-          path: "app/build/outputs/apk/debug/LinkwardenShare-${{ env.VERSION }}.apk"
+          name: LinkwardenShare-${{ steps.version.outputs.version }}
+          path: "app/build/outputs/apk/debug/LinkwardenShare-${{ steps.version.outputs.version }}.apk"
 
   deploy:
     needs: build
@@ -69,13 +70,13 @@ jobs:
       - name: Download APK
         uses: actions/download-artifact@v4
         with:
-          name: LinkwardenShare-${{ env.VERSION }}
+          name: LinkwardenShare-${{ needs.build.outputs.version }}
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: "LinkwardenShare-${{ env.VERSION }}.apk"
-          tag_name: v${{ env.VERSION }}
-          name: Release ${{ env.VERSION }}
+          files: "LinkwardenShare-${{ needs.build.outputs.version }}.apk"
+          tag_name: v${{ needs.build.outputs.version }}
+          name: Release ${{ needs.build.outputs.version }}
           draft: false
           prerelease: false
         env:
