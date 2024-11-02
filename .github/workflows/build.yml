@@ -45,7 +45,6 @@ jobs:
           elif [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
             VERSION="0.$YEAR$MONTH.$DAY$COMMITS-dev"
           else
-            # Sanitize branch name for filename
             SAFE_BRANCH=$(echo "$GITHUB_REF" | sed 's/[^a-zA-Z0-9._-]/-/g')
             VERSION="0.$YEAR$MONTH.$DAY$COMMITS-$SAFE_BRANCH"
           fi
@@ -64,7 +63,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev')
     steps:
       - uses: actions/checkout@v4
       - name: Download APK
@@ -77,7 +76,10 @@ jobs:
           files: "LinkwardenShare-${{ needs.build.outputs.version }}.apk"
           tag_name: v${{ needs.build.outputs.version }}
           name: Release ${{ needs.build.outputs.version }}
+          body: |
+            This is a prerelease version of LinkwardenShare.
+            Branch: ${{ github.ref_name }}
           draft: false
-          prerelease: false
+          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
