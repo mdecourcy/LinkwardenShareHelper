@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.net.URL
 
 class ShareActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,10 +25,12 @@ class ShareActivity : AppCompatActivity() {
 
         if (intent?.action == Intent.ACTION_SEND) {
             val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
+            val sharedSubject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+
             if (sharedText != null) {
                 lifecycleScope.launch(Dispatchers.IO) {
                     try {
-                        saveToLinkwarden(sharedText)
+                        saveToLinkwarden(sharedText, sharedSubject)
                     } catch (e: Exception) {
                         showToast("Unexpected error occurred")
                     } finally {
@@ -44,7 +47,7 @@ class ShareActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun saveToLinkwarden(url: String) {
+    private suspend fun saveToLinkwarden(url: String, subject: String?) {
         val encryptedSharedPrefs = getEncryptedSharedPreferences()
 
         val server = encryptedSharedPrefs.getString("server", "") ?: ""
@@ -65,9 +68,11 @@ class ShareActivity : AppCompatActivity() {
 
             val api = retrofit.create(LinkwardenApi::class.java)
 
+            val name = subject ?: extractTitleFromUrl(url)
+
             val request = LinkwardenRequest(
                 url = url,
-                name = url,
+                name = name,
                 description = "",
                 type = "url",
                 tags = tags.split(",")
@@ -89,6 +94,14 @@ class ShareActivity : AppCompatActivity() {
             }
         } catch (e: Exception) {
             showToast("Error: ${e.message}")
+        }
+    }
+
+    private fun extractTitleFromUrl(url: String): String {
+        return try {
+            URL(url).host
+        } catch (e: Exception) {
+            url
         }
     }
 
