@@ -12,15 +12,19 @@ This app is not officially associated with Linkwarden and is provided as-is with
 
 - Share links from any app to Linkwarden
 - Securely store server details and API token using encryption
+- Add tags to shared links
+- Assign links to specific collections
 - OLED black theme
 - Minimal interface
 
 ## Setup
 
-1. Install the app
+1. Install the app (see Installation section below)
 2. Open the app and enter your Linkwarden server details:
    - Server URL (e.g., `https://linkwarden.example.com`)
    - API Token (from your Linkwarden settings)
+   - Default tags (comma-separated)
+   - Default collection ID (optional)
 3. Click "Save Settings"
 
 ## Usage
@@ -28,7 +32,7 @@ This app is not officially associated with Linkwarden and is provided as-is with
 1. In any app, find a link you want to save
 2. Share the link
 3. Select "Linkwarden Share Helper" from the share menu
-4. The link will be saved to your Linkwarden instance
+4. The link will be saved to your Linkwarden instance with the specified tags and collection
 
 ## Security
 
@@ -36,11 +40,20 @@ This app is not officially associated with Linkwarden and is provided as-is with
 - Uses AES256 encryption for stored credentials
 - No data is sent to any third parties
 
+## Installation
+
+You can install the app in one of two ways:
+
+1. Download the latest APK from the [Releases](https://github.com/mdecourcy/LinkwardenShareHelper/releases) page
+2. Build from source (see Building section below)
+
+The app is automatically built and released using GitHub Actions whenever a new commit is pushed to the master branch.
+
 ## Building
 
 1. Clone the repository
 2. Open in Android Studio
-3. Build using Gradle:
+3. Build using Gradle
 
 ## Requirements
 
@@ -50,10 +63,14 @@ This app is not officially associated with Linkwarden and is provided as-is with
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+2. Create your feature branch (`git checkout -b feat/amazing-feature`)
 3. Commit your changes (`git commit -m 'feat/Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+4. Push to the branch (`git push origin feat/amazing-feature`)
 5. Open a Pull Request
+
+## Screenshots
+
+[](screenshots/Screenshot_20241101-201026.png) [](screenshots/Screenshot_20241101-201826.png)
 
 ## Acknowledgments
 
