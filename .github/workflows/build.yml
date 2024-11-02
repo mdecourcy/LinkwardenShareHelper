@@ -1,94 +1,82 @@
-name: Build APK
+name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - master
-      - main
+    branches: [ master, dev, 'feat/*', 'hotfix/*' ]
   pull_request:
-    branches:
-      - master
-      - main
-
-permissions:
-  contents: write
-  packages: write
-  pull-requests: write
+    branches: [ master, dev ]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
+      - uses: actions/checkout@v4
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
+      - name: Run tests
+        run: ./gradlew test
 
-      - name: Generate Changelog
-        id: changelog
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Generate version number
+        id: version
         run: |
-          # Get commits since last release or last 10 commits if no release exists
-          CHANGELOG=$(git log -10 --pretty=format:"- %s (%h)" --reverse)
-          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
-          echo "$CHANGELOG" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: Get current date
-        id: date
-        run: echo "BUILD_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Build Debug APK
+          YEAR=$(date +'%Y')
+          MONTH=$(date +'%m')
+          DAY=$(date +'%d')
+          COMMITS=$(git rev-list --count HEAD)
+          BRANCH=${GITHUB_REF#refs/heads/}
+          if [[ "$BRANCH" == "master" ]]; then
+            VERSION="1.$YEAR$MONTH.$DAY$COMMITS"
+          elif [[ "$BRANCH" == develop ]]; then
+            VERSION="0.$YEAR$MONTH.$DAY$COMMITS-dev"
+          elif [[ "$BRANCH" == release/* ]]; then
+            VERSION="0.$YEAR$MONTH.$DAY$COMMITS-rc"
+          else
+            VERSION="0.$YEAR$MONTH.$DAY$COMMITS-$BRANCH"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - name: Build APK
         run: ./gradlew assembleDebug
-
       - name: Rename APK
         run: |
-          mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/LinkwardenShare.apk
-
+          mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/LinkwardenShare-${{ env.VERSION }}.apk
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: LinkwardenShare
-          path: app/build/outputs/apk/debug/LinkwardenShare.apk
+          name: LinkwardenShare-${{ env.VERSION }}
+          path: app/build/outputs/apk/debug/LinkwardenShare-${{ env.VERSION }}.apk
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master'))
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: LinkwardenShare-${{ env.VERSION }}
       - name: Create Release
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/debug/LinkwardenShare.apk
-          tag_name: v${{ github.run_number }}
-          name: Build ${{ github.run_number }}
+          files: LinkwardenShare-${{ env.VERSION }}.apk
+          tag_name: v${{ env.VERSION }}
+          name: Release ${{ env.VERSION }}
           draft: false
-          prerelease: true
-          generate_release_notes: false
-          body: |
-            This is the latest automated build of Linkwarden Share Helper.
-
-            **App Information:**
-            - Version Code: ${{ github.run_number }}
-            - Build Date: ${{ env.BUILD_DATE }}
-            - Minimum Android Version: 6.0 (API 23)
-
-            **Recent Changes:**
-            ${{ env.CHANGELOG }}
-
-            **Note:** This is a development build and may contain bugs.
+          prerelease: ${{ github.ref != 'refs/heads/master' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            app/build/outputs/
-            app/build/reports/
