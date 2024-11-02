@@ -39,31 +39,31 @@ jobs:
           DAY=$(date +'%d')
           COMMITS=$(git rev-list --count HEAD)
           BRANCH=${GITHUB_REF#refs/heads/}
-          if [[ "$BRANCH" == "master" ]]; then
+          if [[ "$GITHUB_REF" == "refs/heads/master" ]]; then
             VERSION="1.$YEAR$MONTH.$DAY$COMMITS"
-          elif [[ "$BRANCH" == develop ]]; then
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" ]]; then
             VERSION="0.$YEAR$MONTH.$DAY$COMMITS-dev"
-          elif [[ "$BRANCH" == release/* ]]; then
-            VERSION="0.$YEAR$MONTH.$DAY$COMMITS-rc"
           else
-            VERSION="0.$YEAR$MONTH.$DAY$COMMITS-$BRANCH"
+            # Sanitize branch name for filename
+            SAFE_BRANCH=$(echo "$GITHUB_REF" | sed 's/[^a-zA-Z0-9._-]/-/g')
+            VERSION="0.$YEAR$MONTH.$DAY$COMMITS-$SAFE_BRANCH"
           fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
       - name: Build APK
         run: ./gradlew assembleDebug
       - name: Rename APK
         run: |
-          mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/LinkwardenShare-${{ env.VERSION }}.apk
+          mv app/build/outputs/apk/debug/app-debug.apk "app/build/outputs/apk/debug/LinkwardenShare-${{ env.VERSION }}.apk"
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: LinkwardenShare-${{ env.VERSION }}
-          path: app/build/outputs/apk/debug/LinkwardenShare-${{ env.VERSION }}.apk
+          path: "app/build/outputs/apk/debug/LinkwardenShare-${{ env.VERSION }}.apk"
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master'))
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
       - name: Download APK
@@ -73,10 +73,10 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: LinkwardenShare-${{ env.VERSION }}.apk
+          files: "LinkwardenShare-${{ env.VERSION }}.apk"
           tag_name: v${{ env.VERSION }}
           name: Release ${{ env.VERSION }}
           draft: false
-          prerelease: ${{ github.ref != 'refs/heads/master' }}
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
