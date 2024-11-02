@@ -44,19 +44,21 @@ jobs:
           elif [[ "$BRANCH" == "dev" ]]; then
             VERSION="0.$YEAR$MONTH.$DAY$COMMITS-dev"
           else
-            VERSION="0.$YEAR$MONTH.$DAY$COMMITS-$BRANCH"
+            # Sanitize branch name for filename
+            SAFE_BRANCH=$(echo "$GITHUB_REF" | sed 's/[^a-zA-Z0-9._-]/-/g')
+            VERSION="0.$YEAR$MONTH.$DAY$COMMITS-$SAFE_BRANCH"
           fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
       - name: Build APK
         run: ./gradlew assembleDebug
       - name: Rename APK
         run: |
-          mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/LinkwardenShare-${{ env.VERSION }}.apk
+          mv app/build/outputs/apk/debug/app-debug.apk "app/build/outputs/apk/debug/LinkwardenShare-${{ env.VERSION }}.apk"
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: LinkwardenShare-${{ env.VERSION }}
-          path: app/build/outputs/apk/debug/LinkwardenShare-${{ env.VERSION }}.apk
+          path: "app/build/outputs/apk/debug/LinkwardenShare-${{ env.VERSION }}.apk"
 
   deploy:
     needs: build
@@ -71,10 +73,10 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: LinkwardenShare-${{ env.VERSION }}.apk
+          files: "LinkwardenShare-${{ env.VERSION }}.apk"
           tag_name: v${{ env.VERSION }}
           name: Release ${{ env.VERSION }}
           draft: false
-          prerelease: true
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
