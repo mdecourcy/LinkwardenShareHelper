@@ -71,8 +71,8 @@ The app is automatically built and released using GitHub Actions whenever a new 
 ## Screenshots
 
 <p float="left">
-  <img src="screenshots/screenshot1.png" width="156" />
-  <img src="screenshots/screenshot2.png" width="156" /> 
+  <img src="screenshots/screenshot2.png" width="350" />
+  <img src="screenshots/screenshot1.png" width="350" /> 
 </p>
 
 ## Acknowledgments
