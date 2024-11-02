@@ -70,7 +70,8 @@ The app is automatically built and released using GitHub Actions whenever a new 
 
 ## Screenshots
 
-[](screenshots/Screenshot_20241101-201026.png) [](screenshots/Screenshot_20241101-201826.png)
+[](screenshots/Screenshot_20241101-201026.png)
+[](screenshots/Screenshot_20241101-201826.png)
 
 ## Acknowledgments
 
