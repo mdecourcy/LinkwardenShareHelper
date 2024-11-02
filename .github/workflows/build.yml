@@ -63,7 +63,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     permissions:
       contents: write
     steps:
@@ -79,9 +79,9 @@ jobs:
           tag_name: v${{ needs.build.outputs.version }}
           name: Release ${{ needs.build.outputs.version }}
           body: |
-            This is a prerelease version of LinkwardenShare.
+            This is a release version of LinkwardenShare.
             Branch: ${{ github.ref_name }}
           draft: false
-          prerelease: true
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
