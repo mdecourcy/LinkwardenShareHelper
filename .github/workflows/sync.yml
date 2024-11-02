@@ -1,0 +1,19 @@
+name: Sync Dev with Master
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  sync-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Sync dev with master
+        run: |
+          git checkout dev
+          git merge origin/master
+          git push origin dev
